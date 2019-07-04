@@ -104,57 +104,57 @@ def genMat(x_vec, y_vec, z_vec, nug, sill, ran):
 
     return mat
 
-# if __name__=="__main__":
-'''measurement configuration'''
-LEN_AREA = 1000.0 #area length [m]
-N = 128 #number of samples
-DCOR = 100.0 #correlation distance [m]
-STDEV = 8.0 #standard deviation
+if __name__=="__main__":
+    '''measurement configuration'''
+    LEN_AREA = 1000.0 #area length [m]
+    N = 128 #number of samples
+    DCOR = 100.0 #correlation distance [m]
+    STDEV = 8.0 #standard deviation
 
-'''parameters for semivariogram modeling'''
-D_MAX = 500.0 #maximum distance in semivariogram modeling
-N_SEMIVAR = 20 #number of points for averaging empirical semivariograms
+    '''parameters for semivariogram modeling'''
+    D_MAX = 500.0 #maximum distance in semivariogram modeling
+    N_SEMIVAR = 20 #number of points for averaging empirical semivariograms
 
-'''get measurement dataset'''
-x, y = genMeasurementLocation(N, LEN_AREA) #get N-coodinates for measurements
-cov = genCovMat(x, y, DCOR, STDEV) #gen variance-covariance matrix
-z = genMultivariate(cov) #gen measurement samples based on multivariate normal distribution
+    '''get measurement dataset'''
+    x, y = genMeasurementLocation(N, LEN_AREA) #get N-coodinates for measurements
+    cov = genCovMat(x, y, DCOR, STDEV) #gen variance-covariance matrix
+    z = genMultivariate(cov) #gen measurement samples based on multivariate normal distribution
 
-'''get empirical semivariogram model'''
-data = np.vstack([x, y, z]).T
-d_sv, sv = genSemivar(data, D_MAX, N_SEMIVAR)
+    '''get empirical semivariogram model'''
+    data = np.vstack([x, y, z]).T
+    d_sv, sv = genSemivar(data, D_MAX, N_SEMIVAR)
 
-'''plot empirical/theoretical semivariogram'''
-param = semivarFitting(d_sv, sv)
-d_fit = np.linspace(0.0, D_MAX, 1000)
-y_fit = semivar_exp(d_fit, param[0], param[1], param[2])
-plt.plot(d_sv, sv, 'o', label="Empirical")
-plt.plot(d_fit, y_fit, label="Fitted")
-plt.title("Semivariogram")
-plt.xlabel("Distance between measurement points [m]")
-plt.ylabel("Semivariogram")
-plt.legend()
-plt.show()
+    '''plot empirical/theoretical semivariogram'''
+    param = semivarFitting(d_sv, sv)
+    d_fit = np.linspace(0.0, D_MAX, 1000)
+    y_fit = semivar_exp(d_fit, param[0], param[1], param[2])
+    plt.plot(d_sv, sv, 'o', label="Empirical")
+    plt.plot(d_fit, y_fit, label="Fitted")
+    plt.title("Semivariogram")
+    plt.xlabel("Distance between measurement points [m]")
+    plt.ylabel("Semivariogram")
+    plt.legend()
+    plt.show()
 
-'''Ordinary Kriging'''
-N_DIV = 30
-x_valid = np.linspace(0, LEN_AREA, N_DIV)
-y_valid = np.linspace(0, LEN_AREA, N_DIV)
-X, Y = np.meshgrid(x_valid, y_valid)
-z_map = np.zeros([len(x_valid), len(y_valid)])
+    '''Ordinary Kriging'''
+    N_DIV = 30
+    x_valid = np.linspace(0, LEN_AREA, N_DIV)
+    y_valid = np.linspace(0, LEN_AREA, N_DIV)
+    X, Y = np.meshgrid(x_valid, y_valid)
+    z_map = np.zeros([len(x_valid), len(y_valid)])
 
-mat = genMat(x, y, z, param[0], param[1], param[2])
-for i in range(len(y_valid)):
-    for j in range(len(x_valid)):
-        z_map[i][j] = ordinaryKriging(mat, x, y, z, x_valid[j], y_valid[i], param[0], param[1], param[2])
+    mat = genMat(x, y, z, param[0], param[1], param[2])
+    for i in range(len(y_valid)):
+        for j in range(len(x_valid)):
+            z_map[i][j] = ordinaryKriging(mat, x, y, z, x_valid[j], y_valid[i], param[0], param[1], param[2])
 
-'''plot results'''
-fig = plt.figure()
-ax1 = fig.add_subplot(1,2,1, adjustable='box', aspect=1.0)
-ax2 = fig.add_subplot(1,2,2, adjustable='box', aspect=1.0)
+    '''plot results'''
+    fig = plt.figure()
+    ax1 = fig.add_subplot(1,2,1, adjustable='box', aspect=1.0)
+    ax2 = fig.add_subplot(1,2,2, adjustable='box', aspect=1.0)
 
-ax1.scatter(x, y, s=80, c=z, cmap='jet')
-ax1.set_title("Dataset")
-ax2.pcolor(X, Y, z_map, cmap='jet')
-ax2.set_title("Kriging-based Map")
-plt.show()
+    ax1.scatter(x, y, s=80, c=z, cmap='jet')
+    ax1.set_title("Dataset")
+    ax2.pcolor(X, Y, z_map, cmap='jet')
+    ax2.set_title("Kriging-based Map")
+    plt.show()

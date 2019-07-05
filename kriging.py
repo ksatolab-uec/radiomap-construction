@@ -124,9 +124,9 @@ if __name__=="__main__":
     '''get empirical semivariogram model'''
     data = np.vstack([x, y, z]).T
     d_sv, sv = genSemivar(data, D_MAX, N_SEMIVAR)
-
-    '''plot empirical/theoretical semivariogram'''
     param = semivarFitting(d_sv, sv)
+    
+    '''plot empirical/theoretical semivariogram'''
     d_fit = np.linspace(0.0, D_MAX, 1000)
     y_fit = semivar_exp(d_fit, param[0], param[1], param[2])
     plt.plot(d_sv, sv, 'o', label="Empirical")

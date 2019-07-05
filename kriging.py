@@ -6,6 +6,7 @@
 # - Windows10 Home x64
 # - Python     3.7.3
 # - numpy      1.16.2
+# - scipy      1.2.1
 # - matplotlib 3.0.3
 ################################################################
 
@@ -13,7 +14,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from scipy.optimize import minimize
 
-''' sampling by multivariate normal distribution '''
+''' sampling via multivariate normal distribution with no trend '''
 def genMultivariate(cov):
     print("--genMultivariate()--")
     L = np.linalg.cholesky(cov)

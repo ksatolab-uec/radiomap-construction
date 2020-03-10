@@ -1,14 +1,36 @@
-################################################################
-# Demonstration of Semivariogram Modeling and Ordinary Kriging
+##################################################################
+# Demonstration of Radio Map Construction with Regression Kriging
 # Written by Koya SATO
-# 2019.07.04 ver.1.0
+# 2020.02.22 ver.1.0
 # Verification:
-# - Windows10 Home x64
+# - Ubuntu18.04 (Docker container)
 # - Python     3.7.3
 # - numpy      1.16.2
 # - scipy      1.2.1
 # - matplotlib 3.0.3
-################################################################
+##################################################################
+
+# The MIT License (MIT)
+#
+# Copyright (c) 2020 Koya SATO.
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
 
 import numpy as np
 from matplotlib import pyplot as plt
@@ -105,27 +127,52 @@ def genMat(x_vec, y_vec, z_vec, nug, sill, ran):
 
     return mat
 
+def pathloss(d, eta):
+    return 10.0 * eta * np.log10(d+1.0) #+1: to avoid diverse of path loss
+
+'''Ordinary Least Squares for Path Loss Modeling'''
+def OLS(d, p):
+    A = np.vstack([-10.0*np.log10(d+1.0), np.ones(len(p))]).T
+    m, c = np.linalg.lstsq(A, p)[0]
+    return m, c
+
 if __name__=="__main__":
     '''measurement configuration'''
-    LEN_AREA = 1000.0 #area length [m]
-    N = 128 #number of samples
-    DCOR = 100.0 #correlation distance [m]
+    LEN_AREA = 200.0 #area length [m]
+    N = 100 #number of samples
+    DCOR = 20.0 #correlation distance [m]
     STDEV = 8.0 #standard deviation
+    TX_X = 0.0 #x coordinate of transmitter
+    TX_Y = 0.5 * LEN_AREA #y coordinate of transmitter
+    PTX = 30.0 #transmission power [dBm]
+    ETA = 3.0 #path loss index
 
-    '''parameters for semivariogram modeling'''
-    D_MAX = 500.0 #maximum distance in semivariogram modeling
+    '''parameters for semivariogram modeling and Kriging'''
+    D_MAX = LEN_AREA * np.sqrt(2.0) #maximum distance in semivariogram modeling
     N_SEMIVAR = 20 #number of points for averaging empirical semivariograms
-
+    
     '''get measurement dataset'''
     x, y = genMeasurementLocation(N, LEN_AREA) #get N-coodinates for measurements
     cov = genCovMat(x, y, DCOR, STDEV) #gen variance-covariance matrix
     z = genMultivariate(cov) #gen measurement samples based on multivariate normal distribution
 
+    d = distance(TX_X, TX_Y, x, y) #distance between received points and transmission point
+    l = pathloss(d, ETA) #path loss
+    prx = PTX - l + z #received signal power
+
+    '''Path loss modeling'''
+    eta_est, ptx_est = OLS(d, prx)
+    print(eta_est, ptx_est)
+
+    '''Shadowing extraction'''
+    pmean_est = ptx_est - pathloss(d, eta_est)
+    shad_est = prx - pmean_est
+
     '''get empirical semivariogram model'''
-    data = np.vstack([x, y, z]).T
+    data = np.vstack([x, y, shad_est]).T
     d_sv, sv = genSemivar(data, D_MAX, N_SEMIVAR)
     param = semivarFitting(d_sv, sv)
-    
+
     '''plot empirical/theoretical semivariogram'''
     d_fit = np.linspace(0.0, D_MAX, 1000)
     y_fit = semivar_exp(d_fit, param[0], param[1], param[2])
@@ -137,25 +184,28 @@ if __name__=="__main__":
     plt.legend()
     plt.show()
 
-    '''Ordinary Kriging'''
+    '''Radio Map Construction'''
     N_DIV = 30
     x_valid = np.linspace(0, LEN_AREA, N_DIV)
     y_valid = np.linspace(0, LEN_AREA, N_DIV)
     X, Y = np.meshgrid(x_valid, y_valid)
-    z_map = np.zeros([len(x_valid), len(y_valid)])
+    prx_map = np.zeros([len(x_valid), len(y_valid)])
+    
+    mat = genMat(x, y, prx, param[0], param[1], param[2])
 
-    mat = genMat(x, y, z, param[0], param[1], param[2])
     for i in range(len(y_valid)):
         for j in range(len(x_valid)):
-            z_map[i][j] = ordinaryKriging(mat, x, y, z, x_valid[j], y_valid[i], param[0], param[1], param[2])
+            pmean = ptx_est - pathloss(distance(TX_X, TX_Y, x_valid[j], y_valid[i]), eta_est)
+            prx_map[i][j] = pmean + ordinaryKriging(mat, x, y, shad_est, x_valid[j], y_valid[i], param[0], param[1], param[2])
 
     '''plot results'''
     fig = plt.figure()
     ax1 = fig.add_subplot(1,2,1, adjustable='box', aspect=1.0)
     ax2 = fig.add_subplot(1,2,2, adjustable='box', aspect=1.0)
 
-    ax1.scatter(x, y, s=80, c=z, cmap='jet')
+    ax1.scatter(x, y, s=80, c=prx, cmap='jet')
     ax1.set_title("Dataset")
-    ax2.pcolor(X, Y, z_map, cmap='jet')
+    ax2.pcolor(X, Y, prx_map, cmap='jet')
     ax2.set_title("Kriging-based Map")
     plt.show()
+    plt.savefig("example.png")

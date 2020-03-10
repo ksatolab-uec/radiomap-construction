@@ -162,7 +162,6 @@ if __name__=="__main__":
 
     '''Path loss modeling'''
     eta_est, ptx_est = OLS(d, prx)
-    print(eta_est, ptx_est)
 
     '''Shadowing extraction'''
     pmean_est = ptx_est - pathloss(d, eta_est)
@@ -185,7 +184,7 @@ if __name__=="__main__":
     plt.show()
 
     '''Radio Map Construction'''
-    N_DIV = 30
+    N_DIV = 30 #number of grids in each axis
     x_valid = np.linspace(0, LEN_AREA, N_DIV)
     y_valid = np.linspace(0, LEN_AREA, N_DIV)
     X, Y = np.meshgrid(x_valid, y_valid)
@@ -208,4 +207,4 @@ if __name__=="__main__":
     ax2.pcolor(X, Y, prx_map, cmap='jet')
     ax2.set_title("Kriging-based Map")
     plt.show()
-    plt.savefig("example.png")
+    # plt.savefig("example.png")

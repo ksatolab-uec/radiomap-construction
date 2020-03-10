@@ -1,6 +1,7 @@
-# Requirements
+# Verified with
 - Python 3.7.3
 - numpy 1.16.2
+- scipy 1.2.1
 - matplotlib 3.0.3
 
 # Overview

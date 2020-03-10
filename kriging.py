@@ -3,7 +3,7 @@
 # Written by Koya SATO
 # 2020.02.22 ver.1.0
 # Verification:
-# - Ubuntu18.04 (Docker container)
+# - Ubuntu 18.04
 # - Python     3.7.3
 # - numpy      1.16.2
 # - scipy      1.2.1

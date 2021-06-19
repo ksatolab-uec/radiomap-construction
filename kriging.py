@@ -246,5 +246,5 @@ if __name__=="__main__":
     cb.set_label("Received Signal Power [dBm]")
 
     plt.tight_layout()
-    plt.show()
-    # plt.savefig("example.png")
+    # plt.show()
+    plt.savefig("example.png", bbox_inches="tight")

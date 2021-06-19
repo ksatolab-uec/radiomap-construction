@@ -97,7 +97,11 @@ def gen_emprical_semivar(data, d_max, num):
         d2 = d_semivar[i] + 0.5*SPAN
         indx_tmp = (d1 < d) * (d <= d2) #index within calculation span
         semivar_tr = semivar[indx_tmp]
-        semivar_avg[i] = semivar_tr.mean()
+        # semivar_avg[i] = semivar_tr.mean()
+        if len(semivar_tr)>0:
+            semivar_avg[i] = semivar_tr.mean()
+        else:
+            semivar_avg[i] = np.nan
 
     return d_semivar[np.isnan(semivar_avg) == False], 0.5 * semivar_avg[np.isnan(semivar_avg) == False]
 
@@ -123,7 +127,7 @@ def fit_semivar(d, data):
     return np.abs(res.x)
 
 def ordinary_kriging(mat, x_vec, y_vec, z_vec, x_rx, y_rx, nug, sill, ran):
-    vec              = np.ones(len(z_vec)+1, dtype=np.float)
+    vec              = np.ones(len(z_vec)+1, dtype=float)
 
     d_vec            = distance(x_vec, y_vec, x_rx, y_rx)
     vec[:len(z_vec)] = semivar_exp(d_vec, nug, sill, ran)
@@ -191,15 +195,15 @@ if __name__=="__main__":
     param       = fit_semivar(d_sv, sv)
 
     '''plot empirical/theoretical semivariogram'''
-    d_fit = np.linspace(0.0, D_MAX, 1000)
-    y_fit = semivar_exp(d_fit, param[0], param[1], param[2])
-    plt.plot(d_sv, sv, 'o', label="Empirical")
-    plt.plot(d_fit, y_fit, label="Fitted")
-    plt.title("Semivariogram")
-    plt.xlabel("Distance between measurement points [m]")
-    plt.ylabel("Semivariogram")
-    plt.legend()
-    plt.show()
+    # d_fit = np.linspace(0.0, D_MAX, 1000)
+    # y_fit = semivar_exp(d_fit, param[0], param[1], param[2])
+    # plt.plot(d_sv, sv, 'o', label="Empirical")
+    # plt.plot(d_fit, y_fit, label="Fitted")
+    # plt.title("Semivariogram")
+    # plt.xlabel("Distance between measurement points [m]")
+    # plt.ylabel("Semivariogram")
+    # plt.legend()
+    # plt.show()
 
     '''radio map construction'''
     N_DIV   = 30 #number of grids in each axis
@@ -217,7 +221,6 @@ if __name__=="__main__":
             prx_map[i][j]   = pmean + ordinary_kriging(mat, x, y, shad_est, x_valid[j], y_valid[i], param[0], param[1], param[2])
 
     '''plot results'''
-
     fig, axs = plt.subplots(1, 2, figsize=(9, 6))
 
     im0 = axs[0].scatter(x, y, s=80, c=prx, cmap='jet', vmin=-40, vmax=0)

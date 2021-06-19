@@ -1,4 +1,4 @@
-# Requirements:
+# Requirements
 - Python 3.x
 - numpy
 - scipy
@@ -12,6 +12,18 @@
 * Measurement samples consist of path loss and spatially-correlated log-normal shadowing.
 * Spatial correlation follows an exponential decay model.
 ![](example.png)
+
+# How To Use
+You can run it with:
+```bash
+$python kriging.py
+```
+If docker is available, you can alse use it via the following commands:
+```bash
+$docker build -t mypy .
+$docker run -it --rm -v "$PWD":/usr/src/myapp -w /usr/src/myapp mypy:latest python3 kriging.py
+```
+("mypy" can be replaced with your favorite tag name)
 
 # References
 

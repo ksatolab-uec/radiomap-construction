@@ -14,7 +14,7 @@
 ![](example.png)
 
 # How To Use
-You can run it with:
+You can run it with
 ```bash
 $python kriging.py
 ```

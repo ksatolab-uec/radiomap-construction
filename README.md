@@ -8,7 +8,7 @@
 * This code tries to construct a radio map via Regression Kriging.
   * Path loss is estimated via ordinary least squares (OLS).
   * Shadowing is estimated via ordinary Kriging.
-  * Note: this method is equal to universal Kriging.
+  * Note: this method is equal to regression with Gaussian process regression (GPR).
 * Measurement samples consist of path loss and spatially-correlated log-normal shadowing.
 * Spatial correlation follows an exponential decay model.
 ![](example.png)

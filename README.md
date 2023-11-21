@@ -5,10 +5,10 @@
 - matplotlib
 
 # Overview
-* This code tries to construct a radio map via Regression Kriging.
+* This code demonstrates a radio map construction based on Regression Kriging.
   * Path loss is estimated via ordinary least squares (OLS).
   * Shadowing is estimated via ordinary Kriging.
-  * Note: this method is equal to OLS with Gaussian process regression (GPR).
+  * Note: this method is equal to Gaussian process regression (GPR) with OLS.
 * Measurement samples consist of path loss and spatially-correlated log-normal shadowing.
 * Spatial correlation follows an exponential decay model.
 ![](example.png)
